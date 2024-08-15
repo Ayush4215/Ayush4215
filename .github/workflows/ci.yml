@@ -11,12 +11,12 @@ concurrency:
 jobs:
   generate-devices-matrix:
     name: Generate devices matrix
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: DeterminateSystems/nix-installer-action@v4
+      - uses: DeterminateSystems/nix-installer-action@main
       - id: devices-matrix
         run: printf "matrix=%s" "$(nix-instantiate --json --eval .ci/devices-list.nix)" >> $GITHUB_OUTPUT
     outputs:
@@ -25,16 +25,16 @@ jobs:
   build-all-devices:
     name: "Build: ${{ matrix.device }}"
     needs: generate-devices-matrix
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         device: ${{ fromJson(needs.generate-devices-matrix.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: DeterminateSystems/nix-installer-action@v4
-      - uses: DeterminateSystems/magic-nix-cache-action@v2
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Build archive (release)
         if: "startsWith(github.ref, 'refs/tags/') && github.event_name != 'pull_request'"
         run: |
@@ -51,26 +51,26 @@ jobs:
           archive=$(readlink -f result)
           cp --dereference "$archive" "${archive#*-}"
       - name: Upload archive to Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           path: '*.tar.xz'
           if-no-files-found: error
 
   docs:
     name: Build docs
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: DeterminateSystems/nix-installer-action@v4
+      - uses: DeterminateSystems/nix-installer-action@main
       - run: nix-build doc/ -A archive
       - name: Rename archive
         run: |
           archive=$(readlink -f result)
           cp --dereference "$archive" "${archive#*-}"
       - name: Upload archive to Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           path: '*.tar.xz'
           if-no-files-found: error
@@ -79,7 +79,7 @@ jobs:
     name: Release
     if: startsWith(github.ref, 'refs/tags/') && github.event_name != 'pull_request'
     needs: [build-all-devices, docs]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Download archives from Artifacts
         uses: actions/download-artifact@v3
