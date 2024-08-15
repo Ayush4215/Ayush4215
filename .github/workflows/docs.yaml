@@ -7,15 +7,15 @@ on:
 
 jobs:
   publish:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: DeterminateSystems/nix-installer-action@v4
       - run: nix-build doc/
       - if: success()
-        uses: crazy-max/ghaction-github-pages@v2
+        uses: crazy-max/ghaction-github-pages@v4
         with:
           target_branch: gh-pages
           build_dir: result/
